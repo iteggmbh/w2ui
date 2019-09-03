@@ -7,7 +7,7 @@
   </parent>
   <groupId>org.clazzes.jslibs</groupId>
   <artifactId>jslibs-w2ui</artifactId>
-  <version>1.5.0.0</version>
+  <version>1.5.0.1</version>
   <name>W2UI Javascript</name>
   <description>W2UI Javascript Resources</description>
   <packaging>bundle</packaging>
