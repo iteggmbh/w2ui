@@ -34,6 +34,7 @@ var w2obj = w2obj || {}; // expose object to be able to overwrite default functi
 *   - color.onSelect
 *   - color.html
 *   - refactored w2tag object, it has more potential with $().data('w2tag')
+*   - w2tag options.hideOnFocus
 *
 ************************************************/
 
@@ -189,14 +190,6 @@ var w2utils = (function ($) {
             year  = val.getFullYear();
             month = val.getMonth() + 1;
             day   = val.getDate();
-		} else if (String(new Date(val)) != 'Invalid Date') {
-            val = new Date(val);
-            if (retDate !== true) return true;
-            return val;
-            val = new Date(val);
-            year  = val.getFullYear();
-            month = val.getMonth() + 1;
-            day   = val.getDate();
         } else {
             val = String(val);
             // convert month formats
@@ -292,10 +285,6 @@ var w2utils = (function ($) {
             return val;
         } else if (parseInt(val) === val && parseInt(val) < 0) {
             return false;
-		} else if (String(new Date(val)) != 'Invalid Date') {
-            val = new Date(val);
-            if (retDate !== true) return true;
-            return val;
         } else {
             var tmp = String(val).indexOf(' ');
             var values  = [val.substr(0, tmp), val.substr(tmp).trim()];
@@ -521,7 +510,7 @@ var w2utils = (function ($) {
             case 'number':
                 break;
             case 'string':
-                html = String(html).replace(/(<([^>]+)>)/ig, "");
+                html = String(html).replace(/<(?:[^>=]|='[^']*'|="[^"]*"|=[^'"][^\s>]*)*>/ig, "");
                 break;
             case 'object':
                 // does not modify original object, but creates a copy
@@ -2160,6 +2149,7 @@ w2utils.event = {
             onShow          : null,     // callBack when shown
             onHide          : null,     // callBack when hidden
             hideOnKeyPress  : true,     // hide tag if key pressed
+            hideOnFocus     : false,    // hide tag on focus
             hideOnBlur      : false,    // hide tag on blur
             hideOnClick     : false,    // hide tag on document click
             hideOnChange    : true
@@ -2251,8 +2241,12 @@ w2utils.event = {
                     .css(tag.options.css)
                     .addClass(tag.options.inputClass);
 
+
                 if (tag.options.hideOnKeyPress) {
                     $(tag.attachedTo).on('keypress.w2tag', tag.hide);
+                }
+                if (tag.options.hideOnFocus) {
+                    $(tag.attachedTo).on('focus.w2tag', tag.hide);
                 }
                 if (options.hideOnChange) {
                     if (el.nodeName === 'INPUT') {
@@ -2265,7 +2259,7 @@ w2utils.event = {
                     $(tag.attachedTo).on('blur.w2tag', tag.hide);
                 }
                 if (tag.options.hideOnClick) {
-                    $(document).on('click.w2tag', tag.hide);
+                    $('body').on('click.w2tag' + (tag.id || ''), tag.hide);
                 }
                 if (typeof tag.options.onShow === 'function') {
                     tag.options.onShow();
@@ -2279,7 +2273,7 @@ w2utils.event = {
                 if (tag.tmp.timer) clearTimeout(tag.tmp.timer);
                 tag.box.remove();
                 if (tag.options.hideOnClick) {
-                    $(document).off('.w2tag');
+                    $('body').off('.w2tag' + (tag.id || ''));
                 }
                 $(tag.attachedTo).off('.w2tag')
                     .removeClass(tag.options.inputClass)
@@ -3354,6 +3348,7 @@ w2utils.event = {
 *   - ENUM, LIST: should support wild chars
 *   - add selection of predefined times (used for appointments)
 *   - options.items - can be an array
+*   - options.msgSearch - message to search for user
 *
 ************************************************************************/
 
@@ -4101,7 +4096,7 @@ w2utils.event = {
                 if (inpHeight > cntHeight) cntHeight = inpHeight;
                 $(div).css({ 'height': cntHeight + 'px', overflow: (cntHeight == options.maxHeight ? 'auto' : 'hidden') });
                 if (cntHeight < options.maxHeight) $(div).prop('scrollTop', 0);
-                $(this.el).css({ 'height' : (cntHeight + 2) + 'px' });
+                $(this.el).css({ 'height' : (cntHeight + 0) + 'px' });
                 // update size
                 if (obj.type === 'enum') {
                     var tmp = obj.helpers.multi.find('input');
@@ -5248,15 +5243,20 @@ w2utils.event = {
                     }
                     if ($(input).val() !== '') delete obj.tmp.force_open;
                     var msgNoItems = w2utils.lang('No matches');
-                    if (options.url != null && $(input).val().length < options.minLength && obj.tmp.emptySet !== true) msgNoItems = options.minLength + ' ' + w2utils.lang('letters or more...');
-                    if (options.url != null && $(input).val() === '' && obj.tmp.emptySet !== true) msgNoItems = w2utils.lang('Type to search...');
+                    if (options.url != null && $(input).val().length < options.minLength && obj.tmp.emptySet !== true) {
+                        msgNoItems = options.minLength + ' ' + w2utils.lang('letters or more...');
+                    }
+                    if (options.url != null && $(input).val() === '' && obj.tmp.emptySet !== true) {
+                        msgNoItems = w2utils.lang(options.msgSearch || 'Type to search...');
+                    }
                     if (options.url == null && options.items.length === 0) msgNoItems = w2utils.lang('Empty list');
                     if (options.msgNoItems != null) {
                         msgNoItems = (typeof msgNoItems === 'function' ? msgNoItems(options) : options.msgNoItems);
                     }
                     if (obj.tmp.lastError) {
-                        msgNoItems = '<div style="white-space: normal; line-height: 1.3">' + obj.tmp.lastError + '</div>';
+                        msgNoItems = obj.tmp.lastError;
                     }
+                    msgNoItems = '<div style="white-space: normal; line-height: 1.3">' + msgNoItems + '</div>';
 
                     var params = $.extend(true, {}, options, {
                         search     : false,
