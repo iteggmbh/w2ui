@@ -5793,14 +5793,14 @@
                     // no default action
                     obj.trigger($.extend(edata, { phase: 'after' }));
                 })
-                this.toolbar.on('refresh', function (event) {
+                /*this.toolbar.on('refresh', function (event) {
                     if (event.target == 'w2ui-search') {
                         var sd = obj.searchData;
                         setTimeout(function () {
                             obj.initAllField(obj.last.field, (sd.length == 1 ? sd[0].value : null));
                         }, 1);
                     }
-                })
+                })*/
             }
         },
 
