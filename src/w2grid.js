@@ -2474,7 +2474,7 @@
             if (cmd == 'delete' || cmd == 'save') {
                 delete params['limit'];
                 delete params['offset'];
-                params['cmd'] = cmd
+                params['cmd'] = cmd;
                 if (cmd == 'delete') {
                     params['selected'] = this.getSelection();
                 }
